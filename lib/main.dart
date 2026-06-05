@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:tp1/views/login_page.dart';
 import 'package:tp1/views/leaderboard_page.dart';
+import 'package:tp1/views/support_page.dart';
 import 'package:tp1/views/quiz_page.dart';
+import 'package:tp1/views/profil_page.dart';
+
 import 'package:tp1/widgets/navbar.dart';
 
 Future<void> main() async {
@@ -43,9 +46,9 @@ class _AppShellState extends State<AppShell> {
     super.initState();
     _pages = [
       LeaderboardPage(token: widget.token, onLogout: widget.onLogout),
-      const QuizPage(),
-      const _PlaceholderPage(label: 'Scores'),
-      const _PlaceholderPage(label: 'Profil'),
+      QuizPage(token: widget.token),
+      const SupportPage(),
+      ProfilPage(token: widget.token, onLogout: widget.onLogout),
     ];
   }
 

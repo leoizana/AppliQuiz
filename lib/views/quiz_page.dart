@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:tp1/views/quiz_session_page.dart';
 
 class QuizPage extends StatefulWidget {
-  const QuizPage({super.key});
+  const QuizPage({super.key, required this.token});
+
+  final String token;
 
   @override
   State<QuizPage> createState() => _QuizPageState();
@@ -25,12 +28,13 @@ class _QuizPageState extends State<QuizPage> {
   static const String _flameAsset = 'src/img/flammex2.png';
 
   // ── Catégories ────────────────────────────────────────────────────────────
+  // IMPORTANT : remplace les themeId par les vrais IDs renvoyés par GET /quiz/themes
   static const List<_Category> _categories = [
-    _Category(label: 'Français', asset: 'src/img/francais.png'),
-    _Category(label: 'Manga', asset: 'src/img/manga.png'),
-    _Category(label: 'Anglais', asset: 'src/img/anglais.png'),
-    _Category(label: 'Maths', asset: 'src/img/maths.png'),
-    _Category(label: 'Dev', asset: 'src/img/dev.png'),
+    _Category(label: 'Français', asset: 'src/img/francais.png', themeId: 1),
+    _Category(label: 'Manga', asset: 'src/img/manga.png', themeId: 2),
+    _Category(label: 'Anglais', asset: 'src/img/anglais.png', themeId: 3),
+    _Category(label: 'Maths', asset: 'src/img/maths.png', themeId: 4),
+    _Category(label: 'Dev', asset: 'src/img/dev.png', themeId: 5),
   ];
 
   final Set<int> _selected = {};
@@ -43,6 +47,32 @@ class _QuizPageState extends State<QuizPage> {
         _selected.add(index);
       }
     });
+  }
+
+  void _openThemeQuiz(_Category category) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => QuizSessionPage(
+          token: widget.token,
+          themeId: category.themeId,
+          themeLabel: category.label,
+          questionLimit: 10,
+        ),
+      ),
+    );
+  }
+
+  void _openRandomQuiz() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => QuizSessionPage(
+          token: widget.token,
+          themeId: null,
+          themeLabel: 'Aléatoire',
+          questionLimit: 10,
+        ),
+      ),
+    );
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
@@ -105,7 +135,10 @@ class _QuizPageState extends State<QuizPage> {
     final isSelected = _selected.contains(index);
 
     return GestureDetector(
-      onTap: () => _toggleCategory(index),
+      onTap: () {
+        _toggleCategory(index);
+        _openThemeQuiz(cat);
+      },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 160),
         width: cardWidth,
@@ -239,9 +272,7 @@ class _QuizPageState extends State<QuizPage> {
                 child: SizedBox(
                   width: double.infinity,
                   child: GestureDetector(
-                    onTap: () {
-                      // TODO: lancer le quizz aléatoire
-                    },
+                    onTap: _openRandomQuiz,
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 22),
                       decoration: BoxDecoration(
@@ -343,10 +374,14 @@ class _QuizPageState extends State<QuizPage> {
   }
 }
 
-// ── Data class ──────────────────────────────────────────────────────────────
 class _Category {
-  const _Category({required this.label, required this.asset});
+  const _Category({
+    required this.label,
+    required this.asset,
+    required this.themeId,
+  });
 
   final String label;
   final String asset;
+  final int themeId;
 }
