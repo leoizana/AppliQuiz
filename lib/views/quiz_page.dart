@@ -103,6 +103,7 @@ class _QuizPageState extends State<QuizPage> {
   Widget _buildCategoryCard(int index, double cardWidth) {
     final cat = _categories[index];
     final isSelected = _selected.contains(index);
+
     return GestureDetector(
       onTap: () => _toggleCategory(index),
       child: AnimatedContainer(
@@ -116,9 +117,7 @@ class _QuizPageState extends State<QuizPage> {
               : Border.all(color: Colors.transparent, width: 3),
           boxShadow: [
             BoxShadow(
-              color: isSelected
-                  ? _labelPurple.withValues(alpha: 0.28)
-                  : _shadow,
+              color: isSelected ? _labelPurple.withOpacity(0.28) : _shadow,
               blurRadius: isSelected ? 14 : 8,
               offset: const Offset(0, 4),
             ),
@@ -167,7 +166,7 @@ class _QuizPageState extends State<QuizPage> {
     const gap = 12.0;
     const cols = 3;
     final cardWidth = (width - hPad * 2 - gap * (cols - 1)) / cols;
-    final listHeight = cardWidth + 42.0; // image carrée + label
+    final listHeight = cardWidth + 42.0;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -176,7 +175,6 @@ class _QuizPageState extends State<QuizPage> {
           height: listHeight,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
-            // PageScrollPhysics → snap carte par carte
             physics: const PageScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: hPad),
             itemCount: _categories.length,
@@ -186,16 +184,15 @@ class _QuizPageState extends State<QuizPage> {
           ),
         ),
         const SizedBox(height: 10),
-        // Barre de progression visuelle
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: hPad),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
-              value: cols / _categories.length, // ~3 visibles sur N totales
+              value: cols / _categories.length,
               minHeight: 4,
-              backgroundColor: _labelPurple.withValues(alpha: 0.15),
-              valueColor: AlwaysStoppedAnimation<Color>(_labelPurple),
+              backgroundColor: _labelPurple.withOpacity(0.15),
+              valueColor: const AlwaysStoppedAnimation<Color>(_labelPurple),
             ),
           ),
         ),
@@ -216,11 +213,11 @@ class _QuizPageState extends State<QuizPage> {
 
   // ── Challenge block ───────────────────────────────────────────────────────
   Widget _buildChallenge(double width) {
-    const flameSize = 64.0;
-    const flameOverlap = 38.0; // espace réservé au-dessus du bouton
+    const flameSize = 70.0;
+    const flameTopSpace = 72.0;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 22, 24, 0),
+      padding: const EdgeInsets.fromLTRB(24, 18, 24, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -230,16 +227,15 @@ class _QuizPageState extends State<QuizPage> {
               color: _challengeText,
               fontSize: width < 390 ? 17 : 19,
               fontWeight: FontWeight.w800,
-              height: 1.25,
+              height: 1.18,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 4),
           Stack(
             clipBehavior: Clip.none,
             children: [
-              // Padding réserve l'espace pour la flamme → bouton décalé vers le bas
               Padding(
-                padding: const EdgeInsets.only(top: flameOverlap),
+                padding: const EdgeInsets.only(top: flameTopSpace),
                 child: SizedBox(
                   width: double.infinity,
                   child: GestureDetector(
@@ -273,9 +269,8 @@ class _QuizPageState extends State<QuizPage> {
                   ),
                 ),
               ),
-              // Flamme — top: 0 du Stack = pile au-dessus du bouton
               Positioned(
-                right: 16,
+                right: 18,
                 top: 0,
                 child: _asset(
                   _flameAsset,
@@ -299,9 +294,9 @@ class _QuizPageState extends State<QuizPage> {
       body: LayoutBuilder(
         builder: (context, constraints) {
           final width = constraints.maxWidth;
+
           return Stack(
             children: [
-              // Fond dégradé
               Positioned.fill(
                 child: Container(
                   decoration: const BoxDecoration(
@@ -313,7 +308,6 @@ class _QuizPageState extends State<QuizPage> {
                   ),
                 ),
               ),
-              // Contenu scrollable
               Positioned.fill(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
@@ -333,7 +327,7 @@ class _QuizPageState extends State<QuizPage> {
                           ),
                         ),
                       ),
-                      _buildCategoriesScroll(width), // ← scroll une par une
+                      _buildCategoriesScroll(width),
                       _buildNote(),
                       _buildChallenge(width),
                       const SizedBox(height: 120),
@@ -349,9 +343,10 @@ class _QuizPageState extends State<QuizPage> {
   }
 }
 
-// ── Data class ────────────────────────────────────────────────────────────────
+// ── Data class ──────────────────────────────────────────────────────────────
 class _Category {
   const _Category({required this.label, required this.asset});
+
   final String label;
   final String asset;
 }

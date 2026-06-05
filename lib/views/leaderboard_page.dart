@@ -21,6 +21,7 @@ class LeaderboardPage extends StatefulWidget {
 
 class _LeaderboardPageState extends State<LeaderboardPage> {
   static const Duration _requestTimeout = Duration(seconds: 12);
+
   static const Color _bodyLilac = Color(0xFFF5DBFF);
   static const Color _headerPurple = Color(0xFF8F28E6);
   static const Color _bodyTextPurple = Color(0xFF7E2DE1);
@@ -57,6 +58,20 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
     super.dispose();
   }
 
+  TextStyle _uiText({
+    required double size,
+    required FontWeight weight,
+    required Color color,
+    double? height,
+  }) {
+    return TextStyle(
+      fontSize: size,
+      fontWeight: weight,
+      color: color,
+      height: height,
+    );
+  }
+
   Future<void> _loadLeaderboard() async {
     setState(() {
       _loading = true;
@@ -85,6 +100,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
       final claims = _decodeTokenClaims(widget.token);
       final currentUserRaw = await currentUserFuture;
       final rawEntries = _extractEntries(decoded);
+
       final entries = rawEntries
           .whereType<Map>()
           .map(
@@ -97,6 +113,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
           .toList(growable: false);
 
       entries.sort(_compareEntries);
+
       final currentUserEntry = _findCurrentUserEntry(
         entries,
         claims,
@@ -197,8 +214,9 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
   int _compareEntries(LeaderboardEntry left, LeaderboardEntry right) {
     final leftRank = left.rank;
     final rightRank = right.rank;
-    if (leftRank != null && rightRank != null && leftRank != rightRank)
+    if (leftRank != null && rightRank != null && leftRank != rightRank) {
       return leftRank.compareTo(rightRank);
+    }
     if (leftRank != null && rightRank == null) return -1;
     if (leftRank == null && rightRank != null) return 1;
     if (left.points != right.points) return right.points.compareTo(left.points);
@@ -215,13 +233,17 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
     for (final entry in entries) {
       if (entry.isCurrentUser) return entry;
     }
+
     final currentName = _extractDisplayName(currentUserRaw ?? {});
     final currentId = _extractIdentifier(currentUserRaw ?? {});
+
     for (final entry in entries) {
       if (_sameIdentity(entry.displayName, currentName) ||
-          _sameIdentity(entry.id, currentId))
+          _sameIdentity(entry.id, currentId)) {
         return entry;
+      }
     }
+
     final claimCandidates = <String>{
       claims['pseudo'] ?? '',
       claims['username'] ?? '',
@@ -236,11 +258,14 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
       claims['id'] ?? '',
       claims['user_id'] ?? '',
     }.where((v) => v.trim().isNotEmpty).toList();
+
     for (final entry in entries) {
       if (claimCandidates.any((c) => _sameIdentity(entry.displayName, c)) ||
-          claimCandidates.any((c) => _sameIdentity(entry.id, c)))
+          claimCandidates.any((c) => _sameIdentity(entry.id, c))) {
         return entry;
+      }
     }
+
     return null;
   }
 
@@ -338,6 +363,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
       2 => const [Color(0xFFD7D7D7), Color(0xFF8B8B8B)],
       _ => const [Color(0xFFD79662), Color(0xFF8C4D20)],
     };
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -354,10 +380,10 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
           child: Center(
             child: Text(
               '$rank',
-              style: const TextStyle(
+              style: _uiText(
+                size: 20,
+                weight: FontWeight.w800,
                 color: Colors.white,
-                fontWeight: FontWeight.w800,
-                fontSize: 20,
               ),
             ),
           ),
@@ -373,6 +399,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
       2 => _silverAsset,
       _ => _bronzeAsset,
     };
+
     return _assetImage(
       assetPath,
       width: 72,
@@ -408,10 +435,10 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                     'Coucou,\n${greetingName == 'Joueur X' ? (_claims['firstname'] ?? 'toi') : greetingName}',
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
+                    style: _uiText(
+                      size: titleSize,
+                      weight: FontWeight.w400,
                       color: Colors.white,
-                      fontSize: titleSize,
-                      fontWeight: FontWeight.w300,
                       height: 1.08,
                     ),
                   ),
@@ -420,10 +447,10 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                     'Prêt à péter les scores ?',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
+                    style: _uiText(
+                      size: subtitleSize,
+                      weight: FontWeight.w400,
                       color: const Color(0xFFF2E7FF),
-                      fontSize: subtitleSize,
-                      fontWeight: FontWeight.w300,
                     ),
                   ),
                 ],
@@ -449,14 +476,15 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
     final currentScore = _currentUserRaw == null
         ? null
         : _extractPoints(_currentUserRaw!);
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(28, 20, 28, 0),
       child: Text(
-        'Tu as actuellement ${currentScore ?? _currentUserEntry?.points} points',
-        style: const TextStyle(
+        'Tu as actuellement ${currentScore ?? _currentUserEntry?.points ?? 0} points',
+        style: _uiText(
+          size: 24,
+          weight: FontWeight.w400,
           color: _bodyTextPurple,
-          fontSize: 24,
-          fontWeight: FontWeight.w300,
         ),
       ),
     );
@@ -471,6 +499,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
   }) {
     final isCurrentUser = entry?.isCurrentUser ?? false;
     final points = entry?.points ?? 0;
+
     return Container(
       width: cardWidth,
       height: cardHeight,
@@ -490,10 +519,10 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
             top: 22,
             child: Text(
               '$points',
-              style: const TextStyle(
+              style: _uiText(
+                size: 28,
+                weight: FontWeight.w400,
                 color: Colors.white,
-                fontSize: 28,
-                fontWeight: FontWeight.w300,
               ),
             ),
           ),
@@ -524,6 +553,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
       required double cardHeight,
       required Color color,
       required double fontSize,
+      required FontWeight nameWeight,
     }) {
       return Column(
         mainAxisSize: MainAxisSize.min,
@@ -535,10 +565,10 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(
+              style: _uiText(
+                size: fontSize,
+                weight: nameWeight,
                 color: const Color.fromARGB(255, 65, 0, 98),
-                fontSize: fontSize,
-                fontWeight: FontWeight.w600,
               ),
             ),
           ),
@@ -567,6 +597,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
               cardHeight: leftHeight,
               color: _podiumLilacPale,
               fontSize: width < 390 ? 14 : 16,
+              nameWeight: FontWeight.w700,
             ),
           ),
           SizedBox(width: slotSpacing),
@@ -578,6 +609,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
               cardHeight: centerHeight,
               color: _podiumPurpleDeep,
               fontSize: width < 390 ? 16 : 18,
+              nameWeight: FontWeight.w800,
             ),
           ),
           SizedBox(width: slotSpacing),
@@ -589,6 +621,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
               cardHeight: rightHeight,
               color: _podiumLilacLight,
               fontSize: width < 390 ? 14 : 16,
+              nameWeight: FontWeight.w700,
             ),
           ),
         ],
@@ -601,6 +634,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
     final rankLabel = entry.rank != null
         ? _ordinalLabel(entry.rank!)
         : _ordinalLabel(_entries.indexOf(entry) + 4);
+
     return Container(
       height: 78,
       decoration: BoxDecoration(
@@ -621,10 +655,10 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
             child: Center(
               child: Text(
                 entry.points.toString(),
-                style: TextStyle(
+                style: _uiText(
+                  size: width < 390 ? 22 : 24,
+                  weight: FontWeight.w400,
                   color: Colors.white.withValues(alpha: 0.95),
-                  fontSize: width < 390 ? 22 : 24,
-                  fontWeight: FontWeight.w300,
                 ),
               ),
             ),
@@ -636,10 +670,10 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
               alignment: Alignment.center,
               child: Text(
                 rankLabel,
-                style: TextStyle(
+                style: _uiText(
+                  size: width < 390 ? 22 : 24,
+                  weight: FontWeight.w400,
                   color: _textYellow,
-                  fontSize: width < 390 ? 22 : 24,
-                  fontWeight: FontWeight.w300,
                 ),
               ),
             ),
@@ -651,10 +685,10 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                 entry.displayName,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
+                style: _uiText(
+                  size: width < 390 ? 22 : 24,
+                  weight: FontWeight.w400,
                   color: Colors.white,
-                  fontSize: width < 390 ? 22 : 24,
-                  fontWeight: FontWeight.w300,
                 ),
               ),
             ),
@@ -689,22 +723,23 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
+                  Text(
                     'Impossible de charger le leaderboard.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: _uiText(
+                      size: 20,
+                      weight: FontWeight.w600,
                       color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w500,
                     ),
                   ),
                   const SizedBox(height: 10),
                   Text(
                     _error!,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Color(0xFFF6E2FF),
-                      fontSize: 14,
+                    style: _uiText(
+                      size: 14,
+                      weight: FontWeight.w400,
+                      color: const Color(0xFFF6E2FF),
                     ),
                   ),
                   const SizedBox(height: 18),
@@ -714,9 +749,13 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                   ),
                   TextButton(
                     onPressed: widget.onLogout,
-                    child: const Text(
+                    child: Text(
                       'Se déconnecter',
-                      style: TextStyle(color: Colors.white),
+                      style: _uiText(
+                        size: 14,
+                        weight: FontWeight.w500,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ],
@@ -746,23 +785,23 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                     .skip(3)
                     .take(17)
                     .toList(growable: false);
+
                 if (afterPodium.isEmpty) return const SizedBox.shrink();
+
                 return Padding(
                   padding: EdgeInsets.fromLTRB(28, 20, 28, safeBottom + 120),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const Padding(
-                        padding: EdgeInsets.only(bottom: 10),
-                        child: Text(
-                          'Top 20',
-                          style: TextStyle(
-                            color: _bodyTextPurple,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                          ),
+                      Text(
+                        'Top 20',
+                        style: _uiText(
+                          size: 18,
+                          weight: FontWeight.w700,
+                          color: _bodyTextPurple,
                         ),
                       ),
+                      const SizedBox(height: 10),
                       for (final entry in afterPodium)
                         Padding(
                           padding: const EdgeInsets.only(bottom: 14),
@@ -813,8 +852,6 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
   }
 }
 
-// ── Models ────────────────────────────────────────────────────────────────────
-
 class LeaderboardEntry {
   const LeaderboardEntry({
     required this.id,
@@ -844,8 +881,6 @@ class LeaderboardEntry {
   final int? rank;
   final bool isCurrentUser;
 }
-
-// ── Helpers globaux ───────────────────────────────────────────────────────────
 
 int _extractPoints(Map<String, dynamic> data) {
   for (final key in [
@@ -941,11 +976,14 @@ bool _matchesCurrentUser(
 ) {
   final entryName = _extractDisplayName(entry);
   final entryId = _extractIdentifier(entry);
+
   if (currentUserRaw != null) {
     if (_sameIdentity(entryName, _extractDisplayName(currentUserRaw)) ||
-        _sameIdentity(entryId, _extractIdentifier(currentUserRaw)))
+        _sameIdentity(entryId, _extractIdentifier(currentUserRaw))) {
       return true;
+    }
   }
+
   final candidates = <String?>[
     claims['pseudo'],
     claims['username'],
@@ -960,6 +998,7 @@ bool _matchesCurrentUser(
     claims['id'],
     claims['user_id'],
   ].whereType<String>().where((v) => v.trim().isNotEmpty);
+
   return candidates.any(
     (c) => _sameIdentity(entryName, c) || _sameIdentity(entryId, c),
   );
